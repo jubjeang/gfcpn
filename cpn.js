@@ -3,7 +3,6 @@ const path = require('path')
 const { Connection, Request } = require("tedious")
 const raw = fs.readFileSync('./csv/CPN.csv', 'utf8')
 const data = raw.split(/\r?\n/)
-
 let dataall = data.length - 1
 var sSql = ""
 var value_ = ""
@@ -11,9 +10,6 @@ var logger
 var content_h = ""
 var content_d = ""
 var content_f = ""
-// var existingFile = false
-// var newdata = []
-
 //CIT_ReportDB_GFCCP 192.168.100.176 sa ahost!1234
 //joining path of directory 
 const directoryPath = path.join(__dirname, 'output');
@@ -120,15 +116,6 @@ const executeSQL_Select_Groupby = (sql, callback) => {
             else {
                 //----code command after excute sql----------------
                 if (newdata.length > 0) {
-                    //requiring path and fs modules
-                    // const testFolder = './output/';
-                    // fs.readdir(testFolder, (err, files) => {
-                    //     files.forEach(file => {
-                    //         filenum++
-                    //         console.log(file)
-                    //         file_ = file
-                    //     })
-                    // })
                     let today_
                     let time
                     //----format date--
@@ -142,12 +129,6 @@ const executeSQL_Select_Groupby = (sql, callback) => {
                     let TotlSumofBanknotes_GDM = 0
                     //----Time    
                     time = formatData(today.getHours()) + formatData(today.getMinutes())
-                    // if (existingFile === false) {
-                    //     file_ = 'CPN_' + today_ + time + '.txt'
-                    //     // logger = fs.createWriteStream('./output/' + file_, {
-                    //     //     flags: 'a' // 'a' means appending (old data will be preserved)
-                    //     // })
-                    // }
                     console.log('newdata0' + newdata.length)
                     let iNum = 0
                     newdata.forEach(element => {
@@ -155,21 +136,16 @@ const executeSQL_Select_Groupby = (sql, callback) => {
                         content_h = ""
                         content_d = ""
                         content_f = ""
-                        sSql = "select Account,PayIn from [dbo].[CPN_Data] where Account='" + element + "' order by id "
-                        //console.log(sSql)
-
+                        sSql = "select Account,PayIn,Ref_1,Ref_2 from [dbo].[CPN_Data] where Account='" + element + "' order by id "
                         iNum++
                         executeSQL_Select(sSql, file_, today_, time, TotlSumofBanknotes_GDM, iNum, element)
-                        // if (existingFile === false) existingFile = true
                     })
                 }
             }
         })
         connection.execSql(request)
         request.on('row', function (columns) {
-            //let o = {}
             for (let i in columns) {
-                // o = [columns[0].value]
                 newdata.push(columns[0].value)
             }
         })
@@ -193,79 +169,35 @@ const executeSQL_Select = (sql, file_, today_, time, TotlSumofBanknotes_GDM, iNu
             "trustServerCertificate": true
         }
     })
-    //let newdata = []
     let account_ = ""
     let i = 0
     connection.connect((err) => {
         if (err)
             return callback(err, null)
         const request = new Request(sql, (err, rowCount, rows) => {
-            // connection.close()
             if (err) {
                 return callback(err, null)
             }
             else {
                 //----code command after excute sql----------------
-                // logger = fs.createWriteStream('./output/' + file_, {
-                //     flags: 'a' // 'a' means appending (old data will be preserved)
-                // })
-                // try {
-                //     if (existingFile === false) {
-                //         logger.write('1  ') // append string to your file
-                //     }
-                //     else {
-                //         logger.write('\n' + '1  ') // append string to your file
-                //     }
-                //     console.log(newdata.length)
-                //     let rowall = newdata.length
-                //     logger.write(account) // append string to your file
-                //     logger.write('                    Citibank                      ' + today_ + time + 'TH0000000000')
-                //     logger.write('\n' + '2          CENTRAL   Citibank')
-                //     console.log('newdata[0]'+newdata[0])
-                //     console.log('newdata[1]'+newdata[1])
-                //     console.log('newdata[0][1]'+newdata[0][1])
-                //     console.log('newdata[1][1]'+newdata[1][1])
-                //     for (let i = 1; i <= newdata.length; i++) {
-                //         logger.write('\n' + '5          00000000                ' + i + 'Citibank')
-                //         logger.write('\n' + '600000000                ' + i + '    100000000            CASH 004                                     THBCSH       ' + today_ + '         ' + newdata[1] + '          0004            000                   00000000000000000                                                                                   400600000000000000                                                                        004                 400600000000000000                                                                                                                                                                                                                                                                                                                                                                                                                  53000219002270222   K0XX0813K0XXXXXX00000000                                                                                                         27022022                              004                                                                  ' + newdata[1])
-                //         logger.write('\n' + '7          00000000                ' + i + '            ' + newdata[1])
-                //         TotlSumofBanknotes_GDM += parseFloat(newdata[1])
-                //     }
                 console.log('iNum=' + iNum)
                 content_f += '\n' + '8                    ' + (Math.round(TotlSumofBanknotes_GDM * 100) / 100).toFixed(2)
                 content_f += '\n' + '9    ' + (i + 6)
-               // console.log('i in const request = new Request(sql, (err, rowCount, rows)' + i)
                 logger = fs.createWriteStream('./output/' + file_, {
                     flags: 'a' // 'a' means appending (old data will be preserved)
                 })
                 logger.write(content_h + content_d + content_f)
                 logger.on('finish', () => {
                     console.log('wrote all data to file')
-
                 });
-                //     // console.log('done', existingFile)
-                // } catch (err) {
-                //     console.error(err)
-                // }                
             }
         })
-        //******************** */
-        // logger = fs.createWriteStream('./output/' + file_, {
-        //     flags: 'a' // 'a' means appending (old data will be preserved)
-        // })
         //********************* */
         request.on('row', function (columns) {
-            //---code command excute sql-----------            
-            //  console.log(sql)
+            //---code command excute sql-----------                        
             if (account_ === "") {
 
                 try {
-                    // if (existingFile === false) {
-                    //     logger.write('1  ') // append string to your file
-                    // }
-                    // else {
-                    //     logger.write('\n' + '1  ') // append string to your file
-                    // }
                     content_h = '1  '
                     content_h += account // append string to your fil
                     content_h += '                    Citibank                      ' + today_ + time + 'TH0000000000'
@@ -273,30 +205,15 @@ const executeSQL_Select = (sql, file_, today_, time, TotlSumofBanknotes_GDM, iNu
                 } catch (err) {
                     console.error(err)
                 }
-
             }
-           // console.log(i)
-           // console.log(columns[0].value, columns[1].value)
-            // for (let i in columns) {
-            // o = [columns[0].value]
-            // newdata.push(columns[0].value, columns[1].value)
-            // }
-            // for (let i = 1; i <= newdata.length; i++) {
-            content_d += '\n' + '5          00000000                ' + (i+1) + 'Citibank'
-            content_d += '\n' + '600000000                ' + (i+1) + '    100000000            CASH 004                                     THBCSH       ' + today_ + '         ' + columns[1].value + '          0004            000                   00000000000000000                                                                                   400600000000000000                                                                        004                 400600000000000000                                                                                                                                                                                                                                                                                                                                                                                                                  53000219002270222   K0XX0813K0XXXXXX00000000                                                                                                         27022022                              004                                                                  ' + columns[1].value
-            content_d += '\n' + '7          00000000                ' + (i+1) + '            ' + columns[1].value
+            content_d += '\n' + '5          00000000                ' + (i + 1) + 'Citibank'
+            content_d += '\n' + '600000000                ' + (i + 1) + '    100000000            CASH 004                                     THBCSH       ' + today_ + '         ' + parseFloat(columns[1].value).toFixed(2) + '           0004            000                 00000000000000000                                                                                   ' + columns[2].value + '                                                                        004                 ' + columns[2].value + '                                                                                                                                                                                                                                                                                                                                                                                                                  ' + columns[3].value + '   K0XX0813K0XXXXXX00000000                                                                                                         27022022                              004                                                                  ' + parseFloat(columns[1].value).toFixed(2)
+            content_d += '\n' + '7          00000000                ' + (i + 1) + '            ' + parseFloat(columns[1].value).toFixed(2)
             TotlSumofBanknotes_GDM += parseFloat(columns[1].value)
             i++
             //}
         })
-        //********** */
-
-        // logger.write('\n' + '8                    ' + (Math.round(TotlSumofBanknotes_GDM * 100) / 100).toFixed(2))
-        // logger.write('\n' + '9    ' + (i + 4))
-        // logger.on('finish', () => {
-        //     console.log('wrote all data to file');
-        // });
-        //***************** */
+        //********** */ 
         request.on('done', function (rowCount, more) {
             console.log(rowCount + ' rows returned')
         });
