@@ -58,36 +58,6 @@ const executeSQL = (sql, callback) => {
         connection.execSql(request)
     })
 }
-const deleteCVS_data = (sql, callback) => {
-    let connection = new Connection({
-        "authentication": {
-            "options": {
-                "userName": "sa",
-                "password": "ahost!1234"
-            },
-            "type": "default"
-        },
-        "server": "192.168.100.176",
-        "options": {
-            "validateBulkLoadParameters": false,
-            "rowCollectionOnRequestCompletion": true,
-            "database": "CIT_ReportDB_GFCCP",
-            "encrypt": false,
-            "trustServerCertificate": true
-        }
-    })
-    connection.connect((err) => {
-        if (err)
-            return callback(err, null)
-        const request = new Request(sql, (err, rowCount, rows) => {
-            connection.close()
-            if (err)
-                return callback(err, null)
-            callback(null, { rowCount, rows })
-        })
-        connection.execSql(request)
-    })
-}
 const formatData = (input) => {
     if (input > 5) {
         return input
@@ -109,14 +79,12 @@ for (let i = 1; i <= dataall; i++) {
     value_ += ",'GFCTH'"
     value_ += ",'1'"
     sSql += value_ + ")"
-    //--import data from .cvs to db
-    executeSQL(sSql, (err, data) => {
-        if (err)
-            console.error(err)
-        //console.log(data.rowCount)
-    })
+    //    executeSQL(sSql, (err, data) => {
+    //         if (err)
+    //             console.error(err)
+    //         //console.log(data.rowCount)
+    //     })
 }
-
 
 const executeSQL_Select_Groupby = (sql, callback) => {
     let connection = new Connection({
@@ -239,9 +207,8 @@ const executeSQL_Select = (sql, file_, today_, time, TotlSumofBanknotes_GDM, iNu
                 }
             }
             content_d += '\n' + '5          00000000                ' + (i + 1) + 'Citibank'
-            //content_d += '\n' + '600000000                ' + (i + 1) + '    100000000            CASH 004                                     THBCSH       ' + today_ + '          ' + parseFloat(columns[1].value).toFixed(2) + '          0004            000                 00000000000000000                                                                                   ' + columns[2].value + '                                                                        004                 ' + columns[2].value + '                                                                                                                                                                                                                                                                                                                                                                                                                  ' + columns[3].value + '   K0XX0813K0XXXXXX00000000                                                                                                         27022022                              004                                                                  ' + parseFloat(columns[1].value).toFixed(2)
-            content_d += '\n' + '600000000                ' + (i + 1) + '    100000000            CASH 004                                     THBCSH       ' + today_ + check_blank(parseFloat(columns[1].value).toFixed(2), 16) + parseFloat(columns[1].value).toFixed(2) + '          0004            000                 00000000000000000                                                                                   ' + columns[2].value + '                                                                        004                 ' + columns[2].value + '                                                                                                                                                                                                                                                                                                                                                                                                                  ' + columns[3].value + '   K0XX0813K0XXXXXX00000000                                                                                                         27022022                              004 ' + check_blank(parseFloat(columns[1].value).toFixed(2), 72)+parseFloat(columns[1].value).toFixed(2)
-            content_d += '\n' + '7          00000000                ' + (i + 1) + check_blank(parseFloat(columns[1].value).toFixed(2), 19) + parseFloat(columns[1].value).toFixed(2)
+            content_d += '\n' + '600000000                ' + (i + 1) + '    100000000            CASH 004                                     THBCSH       ' + today_ + '         ' + parseFloat(columns[1].value).toFixed(2) + '           0004            000                 00000000000000000                                                                                   ' + columns[2].value + '                                                                        004                 ' + columns[2].value + '                                                                                                                                                                                                                                                                                                                                                                                                                  ' + columns[3].value + '   K0XX0813K0XXXXXX00000000                                                                                                         27022022                              004                                                                  ' + parseFloat(columns[1].value).toFixed(2)
+            content_d += '\n' + '7          00000000                ' + (i + 1) + '            ' + parseFloat(columns[1].value).toFixed(2)
             TotlSumofBanknotes_GDM += parseFloat(columns[1].value)
             i++
             //}
@@ -255,11 +222,6 @@ const executeSQL_Select = (sql, file_, today_, time, TotlSumofBanknotes_GDM, iNu
             content_h = ""
             content_d = ""
             content_f = ""
-            deleteCVS_data("delete from [dbo].[CPN_Data]", (err, data) => {
-                if (err)
-                    console.error(err)
-                //console.log(data.rowCount)
-            })
             connection.close()
         });
         connection.execSql(request)
@@ -270,20 +232,6 @@ executeSQL_Select_Groupby(sSql, (err, data) => {
     if (err)
         console.error(err)
 })
-
-const check_blank = (input, length_) => {
-    let data = ''
-    let lengthall = length_ - input.length
-    for (let i = 1; i <= lengthall; i++) {
-        data += ' '
-    }
-    return data
-}
-// deleteCVS_data("delete from [dbo].[CPN_Data]", (err, data) => {
-//     if (err)
-//         console.error(err)
-//     //console.log(data.rowCount)
-// })
 
 
 
